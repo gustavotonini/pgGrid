@@ -1,0 +1,91 @@
+#============================================================
+#          Cluster DB Server configuration file
+#------------------------------------------------------------
+# file: cluster.conf
+#------------------------------------------------------------
+# This file controls:
+#       o which hosts & port are replication server
+#       o which port use for replication request to replication server
+#       o which command use for recovery function
+#============================================================
+#------------------------------------------------------------
+# set Replication Server information
+#		o Host_Name : 		hostname
+#		o Port : 		Connection port for postmaster
+#		o Recovery_Port : 	Connection port for recovery process
+#------------------------------------------------------------
+<Replicate_Server_Info>
+	<Host_Name> 		replicate1.pgcluster.org	</Host_Name>
+	<Port> 			8001				</Port>
+	<Recovery_Port> 	8101				</Recovery_Port>
+</Replicate_Server_Info>
+#<Replicate_Server_Info>
+#	<Host_Name>		replicate2.pgcluster.org	</Host_Name>
+#	<Port>			8002				</Port>
+#	<Recovery_Port>		8102				</Recovery_Port>
+#</Replicate_Server_Info>
+#<Replicate_Server_Info>
+#	<Host_Name>		replicate3.pgcluster.org	</Host_Name>
+#	<Port>			8003				</Port>
+#	<Recovery_Port>		8103				</Recovery_Port>
+#</Replicate_Server_Info>
+#-------------------------------------------------------------
+# set Cluster DB Server information
+#		o Host_Name : 		Host name which connect with replication server
+#		o Recovery_Port :	Connection port for recovery
+#		o Rsync_Path :		Path of rsync command 
+#		o Rsync_Option : 	File transfer option for rsync
+#		o Rsync_Compress : 	Use compression option for rsync
+#					[yes/no]. default : yes
+#		o Rsync_Timeout : 	Set I/O timeout in second for rsync
+#				(range 1s - 1h)
+#				10s   -- 10 seconds
+#				10min -- 10 minutes
+#				1h    -- 1 hours
+#				default : 0s (no timeout)
+#		o Rsync_Bwlimit : 	Set limit I/O bandwidth for rsync; KBytes/sec
+#				(range 1KB - 10GB)
+#				10KB   -- 10 KBytes/sec
+#				10MB -- 10 MBytes/sec
+#				1GB    -- 1 GByte/sec
+#				default : 0KB (no limit)
+#				If recovery often failed with large DB cluster,
+#				please try to set bwlimit.
+#				you can find the reasonable value by following command
+#					bwmeasure [target host name]
+#		o Pg_Dump_Path :	Path of pg_dump command
+#		o Pg_Dump_Path :	Path of ping command
+#		o When_Stand_Alone :	When all replication servers fell,
+# 					you can set up two kinds of permission,
+# 					"real_only" or "read_write".
+#		o Replication_Timeout :	Timeout of each replication request
+#		o Lifecheck_Timeout :	Timeout of the lifecheck response
+#		o Lifecheck_Interval :	Interval time of the lifecheck
+#				(range 1s - 1h)
+#				10s   -- 10 seconds
+#				10min -- 10 minutes
+#				1h    -- 1 hours
+#-------------------------------------------------------------
+<Host_Name>			cluster1.pgcluster.org		</Host_Name>
+<Recovery_Port>			7001				</Recovery_Port>
+<Rsync_Path>			/usr/bin/rsync			</Rsync_Path>
+<Rsync_Option>			ssh -1				</Rsync_Option>
+<Rsync_Compress>		yes				</Rsync_Compress>
+<Rsync_Timeout>			10min				</Rsync_Timeout>
+<Rsync_Bwlimit>			0KB				</Rsync_Bwlimit>
+<Pg_Dump_Path>			/usr/local/pgsql/bin/pg_dump	</Pg_Dump_Path>
+<Ping_Path>				/bin/ping		</Ping_Path>
+<When_Stand_Alone>		read_only			</When_Stand_Alone>
+<Replication_Timeout>		1min				</Replication_Timeout>
+<LifeCheck_Timeout>		3s				</LifeCheck_Timeout>
+<LifeCheck_Interval>		11s				</LifeCheck_Interval>
+#-------------------------------------------------------------
+# set partitional replicate control information
+#     set DB name and Table name to stop reprication
+#       o DB_Name : 		DB name
+#       o Table_Name : 	Table name
+#-------------------------------------------------------------
+#<Not_Replicate_Info>
+#	<DB_Name>		test_db		</DB_Name>
+#	<Table_Name>		log_table	</Table_Name>
+#</Not_Replicate_Info>

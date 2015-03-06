@@ -1,0 +1,118 @@
+PGCluster: Multi-Master Synchronous Replication System for PostgreSQL
+===========================================================
+
+PGCluster is a multi-master and synchronous replication system that supports load balancing of PostgreSQL.
+
+Changed:
+	$INSTALL_DIR/GNUmakefile.in
+	$INSTALL_DIR/INSTALL_PGCLUSTER
+	$INSTALL_DIR/README_PGCLUSTER
+	$INSTALL_DIR/configure
+	$INSTALL_DIR/configure.in
+	$INSTALL_DIR/pgcluster.sh.tmpl
+	$INSTALL_DIR/src/Makefile
+	$INSTALL_DIR/src/Makefile.global.in
+	$INSTALL_DIR/src/backend/Makefile
+	$INSTALL_DIR/src/backend/access/transam/clog.c
+	$INSTALL_DIR/src/backend/access/transam/xact.c
+	$INSTALL_DIR/src/backend/catalog/catalog.c
+	$INSTALL_DIR/src/backend/commands/analyze.c
+	$INSTALL_DIR/src/backend/commands/copy.c
+	$INSTALL_DIR/src/backend/commands/sequence.c
+	$INSTALL_DIR/src/backend/executor/functions.c
+	$INSTALL_DIR/src/backend/libpq/Makefile
+	$INSTALL_DIR/src/backend/libpq/be-fsstubs.c
+	$INSTALL_DIR/src/backend/libpq/cluster.conf.sample
+	$INSTALL_DIR/src/backend/libpq/recovery.c
+	$INSTALL_DIR/src/backend/libpq/lifecheck.c
+	$INSTALL_DIR/src/backend/libpq/replicate.c
+	$INSTALL_DIR/src/backend/libpq/replicate_com.c
+	$INSTALL_DIR/src/backend/main/main.c
+	$INSTALL_DIR/src/backend/parser/gram.y
+	$INSTALL_DIR/src/backend/parser/keywords.c
+	$INSTALL_DIR/src/backend/parser/parse_clause.c
+	$INSTALL_DIR/src/backend/parser/parse_relation.c
+	$INSTALL_DIR/src/backend/postmaster/postmaster.c
+	$INSTALL_DIR/src/backend/storage/large_object/inv_api.c
+	$INSTALL_DIR/src/backend/storage/lmgr/deadlock.c
+	$INSTALL_DIR/src/backend/storage/lmgr/lmgr.c
+	$INSTALL_DIR/src/backend/storage/lmgr/lock.c
+	$INSTALL_DIR/src/backend/storage/lmgr/proc.c
+	$INSTALL_DIR/src/backend/tcop/postgres.c
+	$INSTALL_DIR/src/backend/tcop/pquery.c
+	$INSTALL_DIR/src/backend/tcop/utility.c
+	$INSTALL_DIR/src/backend/utils/adt/float.c
+	$INSTALL_DIR/src/backend/utils/adt/nabstime.c
+	$INSTALL_DIR/src/backend/utils/adt/ri_triggers.c
+	$INSTALL_DIR/src/backend/utils/adt/timestamp.c
+	$INSTALL_DIR/src/backend/utils/error/assert.c
+	$INSTALL_DIR/src/backend/utils/error/elog.c
+	$INSTALL_DIR/src/backend/utils/fmgr/fmgr.c
+	$INSTALL_DIR/src/backend/utils/mb/mbutils.c
+	$INSTALL_DIR/src/backend/utils/misc/guc.c
+	$INSTALL_DIR/src/backend/utils/misc/postgresql.conf.sample
+	$INSTALL_DIR/src/bin/initdb/initdb.c
+	$INSTALL_DIR/src/bin/pg_dump/pg_dump.c
+	$INSTALL_DIR/src/bin/pg_dump/pg_dumpall.c
+	$INSTALL_DIR/src/include/pg_config.h.in
+	$INSTALL_DIR/src/include/replicate.h
+	$INSTALL_DIR/src/include/replicate_com.h
+	$INSTALL_DIR/src/include/storage/lmgr.h
+	$INSTALL_DIR/src/include/storage/proc.h
+	$INSTALL_DIR/src/interfaces/libpq/Makefile
+	$INSTALL_DIR/src/makefiles/Makefile.aix
+	$INSTALL_DIR/src/makefiles/Makefile.freebsd
+	$INSTALL_DIR/src/makefiles/Makefile.hpux
+	$INSTALL_DIR/src/makefiles/Makefile.linux
+	$INSTALL_DIR/src/makefiles/Makefile.netbsd
+	$INSTALL_DIR/src/makefiles/Makefile.openbsd
+	$INSTALL_DIR/src/makefiles/Makefile.solaris
+	$INSTALL_DIR/src/makefiles/Makefile.sunos4
+Added:
+	$INSTALL_DIR/src/pgcluster/Makefile
+	$INSTALL_DIR/src/pgcluster/libpgc/Makefile
+	$INSTALL_DIR/src/pgcluster/libpgc/libpgc.h
+	$INSTALL_DIR/src/pgcluster/libpgc/sem.c
+	$INSTALL_DIR/src/pgcluster/libpgc/show.c
+	$INSTALL_DIR/src/pgcluster/libpgc/signal.c
+	$INSTALL_DIR/src/pgcluster/pglb/AUTHORS
+	$INSTALL_DIR/src/pgcluster/pglb/COPYING
+	$INSTALL_DIR/src/pgcluster/pglb/Makefile
+	$INSTALL_DIR/src/pgcluster/pglb/child.c
+	$INSTALL_DIR/src/pgcluster/pglb/cluster_table.c
+	$INSTALL_DIR/src/pgcluster/pglb/lifecheck.c
+	$INSTALL_DIR/src/pgcluster/pglb/load_balance.c
+	$INSTALL_DIR/src/pgcluster/pglb/main.c
+	$INSTALL_DIR/src/pgcluster/pglb/pglb.conf.sample
+	$INSTALL_DIR/src/pgcluster/pglb/pglb.h
+	$INSTALL_DIR/src/pgcluster/pglb/pool_auth.c
+	$INSTALL_DIR/src/pgcluster/pglb/pool_connection_pool.c
+	$INSTALL_DIR/src/pgcluster/pglb/pool_params.c
+	$INSTALL_DIR/src/pgcluster/pglb/pool_process_query.c
+	$INSTALL_DIR/src/pgcluster/pglb/pool_stream.c
+	$INSTALL_DIR/src/pgcluster/pglb/recovery.c
+	$INSTALL_DIR/src/pgcluster/pglb/socket.c
+	$INSTALL_DIR/src/pgcluster/pgrp/AUTHORS
+	$INSTALL_DIR/src/pgcluster/pgrp/COPYING
+	$INSTALL_DIR/src/pgcluster/pgrp/Makefile
+	$INSTALL_DIR/src/pgcluster/pgrp/cascade.c
+	$INSTALL_DIR/src/pgcluster/pgrp/conf.c
+	$INSTALL_DIR/src/pgcluster/pgrp/lifecheck.c
+	$INSTALL_DIR/src/pgcluster/pgrp/main.c
+	$INSTALL_DIR/src/pgcluster/pgrp/pgreplicate.conf.sample
+	$INSTALL_DIR/src/pgcluster/pgrp/pgreplicate.h
+	$INSTALL_DIR/src/pgcluster/pgrp/pqformat.c
+	$INSTALL_DIR/src/pgcluster/pgrp/recovery.c
+	$INSTALL_DIR/src/pgcluster/pgrp/replicate.c
+	$INSTALL_DIR/src/pgcluster/pgrp/rlog.c
+	$INSTALL_DIR/src/pgcluster/tool/Makefile
+	$INSTALL_DIR/src/pgcluster/tool/README.jp
+	$INSTALL_DIR/src/pgcluster/tool/pgcbench.c
+	$INSTALL_DIR/src/pgcluster/tool/pgcbench.sh
+	$INSTALL_DIR/src/pgcluster/tool/tpc-b_like.sql
+
+The latest version of this software may be obtained at
+http://pgfoundry.org/projects/pgcluster/
+
+For more information look at pgFoundry web site located at 
+http://pgcluster.projects.postgresql.org/

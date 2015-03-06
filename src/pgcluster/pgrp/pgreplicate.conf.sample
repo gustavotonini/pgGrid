@@ -1,0 +1,113 @@
+#=============================================================
+#  PGReplicate configuration file
+#-------------------------------------------------------------
+# file: pgreplicate.conf
+#-------------------------------------------------------------
+# This file controls:
+#       o which hosts & port are cluster server
+#       o which port use for replication request from cluster server
+#=============================================================
+#
+#-------------------------------------------------------------
+# A setup of Cluster DB(s)
+#
+#		o Host_Name :		The host name of Cluster DB.
+#		              		Please write a host name by FQDN.
+#		              		DO NOT write IP address.
+#		o Port :		The connection port with postmaster.
+#		o Recovery_Port :	The connection port at the time of 
+#					a recovery sequence.
+#-------------------------------------------------------------
+#<Cluster_Server_Info>
+#    <Host_Name>		master.pgcluster.org		</Host_Name>
+#    <Port>			5432				</Port>
+#    <Recovery_Port>		7001				</Recovery_Port>
+#</Cluster_Server_Info>
+#<Cluster_Server_Info>
+#    <Host_Name> 		clusterdb2.pgcluster.org	</Host_Name>
+#    <Port>			5432				</Port>
+#    <Recovery_Port>		7001				</Recovery_Port>
+#</Cluster_Server_Info>
+#<Cluster_Server_Info>
+#    <Host_Name>		cluster3.pgcluster.org		</Host_Name>
+#    <Port>			5432				</Port>
+#    <Recovery_Port>		7001				</Recovery_Port>
+#</Cluster_Server_Info>
+#
+#-------------------------------------------------------------
+# A setup of Load Balance Server
+#
+#		o Host_Name :		The host name of a load balance server.
+#					Please write a host name by FQDN or IP address.
+#		o Recovery_Port :	The connection port at the time of 
+#					a recovery sequence .
+#-------------------------------------------------------------
+#<LoadBalance_Server_Info>
+#	<Host_Name>		loadbalancer.pgcluster.org	</Host_Name>
+#	<Recovery_Port>		6001				</Recovery_Port>
+#</LoadBalance_Server_Info>
+#
+#------------------------------------------------------------
+# A setup of the cascade connection between replication servers.
+# When you do not use RLOG recovery, you can skip this setup
+#
+#		o Host_Name : 	The host name of the upper replication server.
+#				Please write a host name by FQDN or IP address.
+#		o Port : 	The connection port with postmaster.
+#		o Recovery_Port : The connection port at the time of
+#				  a recovery sequence .
+#------------------------------------------------------------
+#<Replicate_Server_Info>
+#	<Host_Name>		upper_replicate.pgcluster.org	</Host_Name>
+#	<Port>			8002 				</Port>
+#	<Recovery_Port>		8102				</Recovery_Port>
+#</Replicate_Server_Info>
+#
+#-------------------------------------------------------------
+# A setup of a replication server
+#
+#		o Host_Name :		The host name of the this replication server.
+#					Please write a host name by FQDN or IP address.
+#		o Replicate_Port :	Connection port for replication
+#		o Recovery_Port :	Connection port for recovery
+#		o RLOG_Port :		Connection port for replication log
+#		o Response_mode :	Timing which returns a response
+#					normal   -- return result of DB which received the query
+#					reliable -- return result after waiting for response of 
+#              		        all Cluster DBs.
+#		o Use_Replication_Log : Use replication log
+#                                       [yes/no]. default : no
+#		o Replication_Timeout : Timeout of each replication response
+#		o Lifecheck_Timeout : 	Timeout of the lifecheck response
+#		o Lifecheck_Interval :  Interval time of the lifecheck
+#					(range 1s - 1h)
+#					10s   -- 10 seconds
+#					10min -- 10 minutes
+#					1h    -- 1 hours
+#-------------------------------------------------------------
+<Host_Name>			replicate.pgcluster.org		</Host_Name>
+<Replication_Port>		8001				</Replication_Port>
+<Recovery_Port>		8101				</Recovery_Port>
+<RLOG_Port>			8301				</RLOG_Port>
+<Response_Mode>		normal				</Response_Mode>
+<Use_Replication_Log>		no				</Use_Replication_Log>
+<Replication_Timeout>		1min				</Replication_Timeout>
+<LifeCheck_Timeout>		3s				</LifeCheck_Timeout>
+<LifeCheck_Interval>		15s				</LifeCheck_Interval>
+#-------------------------------------------------------------
+# A setup of a log files 
+#
+#		o File_Name : 	Log file name with full path
+#		o File_Size : 	Maximum size of each log files
+#				Please specify in a number and unit(K or M)
+#				  10  -- 10 Byte
+#				  10K -- 10 KByte
+#				  10M -- 10 MByte
+#		o Rotate :	Rotation times
+#		                If specified 0, old versions are removed.
+#-------------------------------------------------------------
+<Log_File_Info>
+	<File_Name>		/tmp/pgreplicate.log	</File_Name>
+	<File_Size>		1M			</File_Size>
+	<Rotate>		3			</Rotate>
+</Log_File_Info>

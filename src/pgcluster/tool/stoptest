@@ -1,0 +1,20 @@
+#!/bin/sh
+PGBASE="/usr/local/pgsql"
+PGDATA1="${PGBASE}/data1"
+PGDATA2="${PGBASE}/data2"
+PGDATA3="${PGBASE}/data3"
+PGRP="${PGBASE}/pgrp"
+PGLB="${PGBASE}/pglb"
+
+# start cluster DBs
+${PGBASE}/bin/pg_ctl -D ${PGDATA1} stop
+${PGBASE}/bin/pg_ctl -D ${PGDATA2} stop
+${PGBASE}/bin/pg_ctl -D ${PGDATA3} stop
+
+#start replication server
+cd ${PGRP}
+${PGBASE}/bin/pgreplicate -D ${PGRP} stop
+
+#start load balancer
+cd ${PGLB}
+${PGBASE}/bin/pglb -D ${PGLB} stop

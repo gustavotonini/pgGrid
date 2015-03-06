@@ -1,0 +1,76 @@
+#============================================================
+#          Load Balance Server configuration file
+#-------------------------------------------------------------
+# file: pglb.conf
+#-------------------------------------------------------------
+# This file controls:
+#       o which hosts are db cluster server
+#       o which port  use connect to db cluster server
+#       o how many connections are allowed on each DB server
+#============================================================
+#-------------------------------------------------------------
+# set cluster DB server information
+#		o Host_Name : 		Hostname of Cluster 
+#					Please write a host name by FQDN or IP address.
+#		o Port :		Connection port for postmaster
+#		o Max_Connection :	Maximum number of connections to postmaster
+#-------------------------------------------------------------
+#<Cluster_Server_Info>
+#    <Host_Name>		master.pgcluster.org	</Host_Name>
+#    <Port>			5432			</Port>
+#    <Max_Connect>		32			</Max_Connect>
+#</Cluster_Server_Info>
+#<Cluster_Server_Info>
+#    <Host_Name> 		post2.pgcluster.org	</Host_Name>
+#    <Port>			5432			</Port>
+#    <Max_Connect>		32			</Max_Connect>
+#</Cluster_Server_Info>
+#<Cluster_Server_Info>
+#    <Host_Name>		post3.pgcluster.org	</Host_Name>
+#    <Port>			5432			</Port>
+#    <Max_Connect>		32			</Max_Connect>
+#</Cluster_Server_Info>
+#-------------------------------------------------------------
+# set Load Balance server information
+#		o Host_Name : 		The host name of this load balance server
+#					Please write a host name by FQDN or IP address.
+#		o Backend_Socket_Dir :	Unix domain socket path for the backend
+#		o Receive_Port 		Connection port from client
+#		o Recovery_Port :	Connection port for recovery process
+#		o Max_Cluster_Num :	Maximum number of cluster DB servers
+#		o Use_Connection_Pooling : Use connection pool [yes/no] 
+#		o Lifecheck_Timeout :	Timeout of the lifecheck response
+#		o Lifecheck_Interval : 	Interval time of the lifecheck
+#		o Connection_Life_Time : Timeout of idle connection to cluster DB.
+#		                         (0 means no timeout)
+#				(range 1s - 1h)
+#				10s   -- 10 seconds
+#				10min -- 10 minutes
+#				1h    -- 1 hours
+#-------------------------------------------------------------
+<Host_Name>			loadbalancer.pgcluster.org 	</Host_Name>
+<Backend_Socket_Dir>		/tmp		</Backend_Socket_Dir>
+<Receive_Port>				5432		</Receive_Port>
+<Recovery_Port>				6001		</Recovery_Port>
+<Max_Cluster_Num>			128			</Max_Cluster_Num>
+<Use_Connection_Pooling> 	no			</Use_Connection_Pooling>
+<LifeCheck_Timeout>			3s			</LifeCheck_Timeout>
+<LifeCheck_Interval>		15s			</LifeCheck_Interval>
+<Connection_Life_Time>		0s			</Connection_Life_Time>
+#-------------------------------------------------------------
+# A setup of a log files 
+#
+#		o File_Name : 	Log file name with full path
+#		o File_Size :	Maximum size of each log files
+#				Please specify in a number and unit(K or M)
+#		 		 10   -- 10 Byte
+#				 10K  -- 10 KByte
+#				 10M  -- 10 MByte
+#		o Rotate :	Rotation times
+#		           	If specified 0, old versions are removed.
+#-------------------------------------------------------------
+<Log_File_Info>
+	<File_Name>		/tmp/pglb.log	</File_Name>
+	<File_Size>		1M		</File_Size>
+	<Rotate>		3		</Rotate>
+</Log_File_Info>

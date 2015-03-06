@@ -1,0 +1,392 @@
+PGCluster Installation Instructions
+
+=============================================================
+1. Installation
+=============================================================
+
+1-1. Install Cluster DB Server, Replication Server & Load Balancer
+----------------------------------------------------------------
+$ cd $source_dir 
+$ ./configure
+$ gmake
+$ su
+# gmake install
+# chown -R postgres /usr/local/pgsql
+----------------------------------------------------------------
+
+=============================================================
+2. Initialize DB
+=============================================================
+$ su
+# adduser postgres
+# mkdir /usr/local/pgsql/data
+# chown postgres /usr/local/pgsql/data
+# su - postgres
+$ /usr/local/pgsql/bin/initdb -D /usr/local/pgsql/data
+
+
+=============================================================
+3. Configuration
+=============================================================
+(EX.System Composition)
+
+			|
+		 ((Load Balance Server))
+		 ( hostname: lb.pgcluster.org)
+		 ( receive port:5432   )
+		 ( recovery port:6001  )
+			|
+----------+-------------+------------+----------
+		|			|
+ ((  Cluster DB 1	))	((  Cluster DB 2	))
+ ( hostname:c1.pgcluster.org)	( hostname:c2.pgcluster.org)
+ ( receive port: 5432 )	( receive port:5432  )
+ ( recovery port:7001 )	( recovery port 7002 )
+		  |			  |
+----------+-------------+------------+----------
+			|
+		 ((Replication Server))
+		 ( hostname:pgr.pgcluster.org)
+		 ( receive port:8001   )
+		 ( recovery port:8101  )
+
+
+3-1. Load Balance Server
+
+The setup file of load balance server is copied from the sample file and edited.
+(the sample file is installed '/usr/local/pgsql/share' in default)
+----------------------------------------------------------------
+$cd /usr/local/pgsql/share
+$cp pglb.conf.sample pglb.conf
+----------------------------------------------------------------
+
+In the case of the above system composition example,
+the setup example of pglb.conf file is as the following :
+
+#============================================================
+#		  Load Balance Server configuration file
+#-------------------------------------------------------------
+# file: pglb.conf
+#-------------------------------------------------------------
+# This file controls:
+#	   o which hosts are db cluster server
+#	   o which port  use connect to db cluster server
+#	   o how many connections are allowed on each DB server
+#============================================================
+#-------------------------------------------------------------
+# set cluster DB server information
+#		o Host_Name :		hostname
+#		o Port : 		Connection for postmaster
+#		o Max_Connection : 	Maximum number of connection to postmaster
+#-------------------------------------------------------------
+<Cluster_Server_Info>
+	<Host_Name>		c1.pgcluster.org 	</Host_Name>
+	<Port>			5432			</Port>
+	<Max_Connect>		32			</Max_Connect>
+</Cluster_Server_Info>
+<Cluster_Server_Info>
+	<Host_Name>		c2.pgcluster.org	</Host_Name>
+	<Port>			5432			</Port>
+	<Max_Connect>		32			</Max_Connect>
+</Cluster_Server_Info>
+#-------------------------------------------------------------
+# set Load Balance server information
+#		o Host_Name : 			The host name of this load balance server.
+#						  -- please write a host name by FQDN or IP address.
+#		o Backend_Socket_Dir : 		Unix domain socket path for the backend
+#		o Receive_Port : 		Connection from client
+#		o Recovery_Port : 		Connection for recovery process
+#		o Max_Cluster_Num :	 	Maximum number of cluster DB servers
+#		o Use_Connection_Pooling :	Use connection pool [yes/no] 
+#		o Lifecheck_Timeout :		Timeout of the lifecheck response
+#		o Lifecheck_Interval : 		Interval time of the lifecheck
+#				(range 1s - 1h)
+#				10s    -- 10 seconds
+#				10min  -- 10 minutes
+#				1h     -- 1 hours
+#-------------------------------------------------------------
+<Host_Name>			lb.pgcluster.org	</Host_Name>
+<Backend_Socket_Dir>		/tmp			</Backend_Socket_Dir>
+<Receive_Port>			5432			</Receive_Port>
+<Recovery_Port>		6001			</Recovery_Port>
+<Max_Cluster_Num>		128			</Max_Cluster_Num>
+<Use_Connection_Pooling>	no			</Use_Connection_Pooling>
+<LifeCheck_Timeout>		3s			</LifeCheck_Timeout>
+<LifeCheck_Interval>		15s			</LifeCheck_Interval>
+#-------------------------------------------------------------
+# A setup of a log files 
+#
+#		o File_Name : 	Log file name with full path
+#		o File_Size : 	Maximum size of each log files
+#				Please specify in a number and unit(K or M)
+#				  10   -- 10 Byte
+#				  10K  -- 10 KByte
+#				  10M  -- 10 MByte
+#		o Rotate : 	Rotation times
+#				If specified 0, old versions are removed.
+#-------------------------------------------------------------
+<Log_File_Info>
+	<File_Name>		/tmp/pglb.log		</File_Name>
+	<File_Size>		1M			</File_Size>
+	<Rotate>		3			</Rotate>
+</Log_File_Info>
+
+3-2. Cluster DB Server
+
+The Cluster DB server need edit two configuration files
+('pg_hba.conf' and 'cluster.conf').
+These files are create under the $PG_DATA directory after 'initdb'.
+
+A. pg_hba.conf
+Permission to connect DB via IP connectoins is need for this system.
+
+B. cluster.conf
+In the case of the above system composition example,
+the setup example of cluster.conf file is as the following 
+
+#============================================================
+#		  Cluster DB Server configuration file
+#-------------------------------------------------------------
+# file: cluster.conf
+#-------------------------------------------------------------
+# This file controls:
+#	   o which hosts & port are replication server
+#	   o which port use for replication request to replication server
+#	   o which command use for recovery function
+#
+#============================================================
+#-------------------------------------------------------------
+# set cluster DB server information
+#		o Host_Name : 		hostname
+#		o Port :	 	Connection port for postmaster
+#		o Recovery_Port :	Connection for recovery process
+#-------------------------------------------------------------
+<Replicate_Server_Info>
+	<Host_Name>		pgr.pgcluster.org	</Host_Name>
+	<Port>			8001			</Port>
+	<Recovery_Port>		8101			</Recovery_Port>
+</Replicate_Server_Info>
+#-------------------------------------------------------------
+# set Cluster DB Server information
+#		o Host_Name :		Host name which connect with replication server
+#		o Recovery_Port : 	Connection port for recovery
+#		o Rsync_Path :		Path of rsync command 
+#		o Rsync_Option : 	File transfer option for rsync
+#		o Rsync_Compress :	Use compression option for rsync
+#					[yes/no]. default : yes
+#		o Pg_Dump_Path :	path of pg_dump
+#		o When_Stand_Alone :		When all replication servers fell,
+#					you can set up two kinds of permittion,
+#					"real_only" or "read_write".
+#		o Replication_Timeout : Timeout of each replication request
+#		o Lifecheck_Timeout : 	Timeout of the lifecheck response
+#		o Lifecheck_Interval : 	Interval time of the lifecheck
+#				(range 1s - 1h)
+#				10s   -- 10 seconds
+#				10min -- 10 minutes
+#				1h    -- 1 hours
+#-------------------------------------------------------------
+<Host_Name>			c1.pgcluster.org			</Host_Name>
+<Recovery_Port>		7001					</Recovery_Port>
+<Rsync_Path>			/usr/bin/rsync				</Rsync_Path>
+<Rsync_Option>			ssh -1					</Rsync_Option>
+<Rsync_Compress>		yes					</Rsync_Compress>
+<Pg_Dump_Path>			/usr/local/pgsql/bin/pg_dump		</Pg_Dump_Path>
+<When_Stand_Alone>		read_only				</When_Stand_Alone>
+<Replication_Timeout>		1min					</Replication_Timeout>
+<LifeCheck_Timeout>		3s					</LifeCheck_Timeout>
+<LifeCheck_Interval>		11s					</LifeCheck_Interval>
+#-------------------------------------------------------------
+# set partitional replicate control information
+#	 set DB name and Table name to stop reprication
+#	   o DB_Name :		DB name
+#	   o Table_Name : 	Table name
+#-------------------------------------------------------------
+#<Not_Replicate_Info>
+#	<DB_Name>		test_db		</DB_Name>
+#	<Table_Name> 		log_table	</Table_Name>
+#</Not_Replicate_Info>
+
+3-3. Replication Server
+
+The setup file of replication server is copied from the sample file and edited.
+(the sample file is installed '/usr/local/pgsql/share' in default)
+----------------------------------------------------------------
+$cd /usr/local/pgsql/share
+$cp pgreplicate.conf.sample pgreplicate.conf
+----------------------------------------------------------------
+In the case of the above system composition example,
+the setup example of pgreplicate.conf file is as the following 
+
+#============================================================
+#				 PGReplicate configuration file
+#-------------------------------------------------------------
+# file: pgreplicate.conf
+#-------------------------------------------------------------
+# This file controls:
+#	   o which hosts & port are cluster server
+#	   o which port use for replication request from cluster server
+#============================================================
+#-------------------------------------------------------------
+# set cluster DB server information
+#		o Host_Name : 		hostname
+#		o Port :		Connection port for postmaster
+#		o Recovery_Port :	Connection port for recovery
+#-------------------------------------------------------------
+<Cluster_Server_Info>
+	<Host_Name>		c1.pgcluster.org	</Host_Name>
+	<Port>			5432			</Port>
+	<Recovery_Port>		7001			</Recovery_Port>
+</Cluster_Server_Info>
+<Cluster_Server_Info>
+	<Host_Name>		c2.pgcluster.org	</Host_Name>
+	<Port>			5432			</Port>
+	<Recovery_Port>		7001			</Recovery_Port>
+</Cluster_Server_Info>
+#-------------------------------------------------------------
+# set Load Balance server information
+#		o Host_Name :		hostname
+#		o Recovery_Port : 	Connection port for recovery
+#-------------------------------------------------------------
+<LoadBalance_Server_Info>
+	<Host_Name>		lb.pgcluster.org	</Host_Name>
+	<Recovery_Port>		6001			</Recovery_Port>
+</LoadBalance_Server_Info>
+#------------------------------------------------------------
+# A setup of the cascade connection between replication servers.
+# When you do not use RLOG recovery, you can skip this setup
+#
+#		o Host_Name : 		The host name of the upper replication server.
+#					Please write a host name by FQDN or IP address.
+#		o Port : 		The connection port with postmaster.
+#		o Recovery_Port :	The connection port at the time of 
+#					a recovery sequence .
+#------------------------------------------------------------
+#<Replicate_Server_Info>
+#	<Host_Name>		upper_replicate.pgcluster.org		</Host_Name>
+#	<Port>			8002					</Port>
+#	<Recovery_Port>		8102					</Recovery_Port>
+#</Replicate_Server_Info>
+#
+#-------------------------------------------------------------
+# A setup of a replication server
+#
+#		o Host_Name :		The host name of the this replication server.
+#					Please write a host name by FQDN or IP address.
+#		o Replicate_Port : 	Connection port for replication
+#		o Recovery_Port : 	Connection port for recovery
+#		o RLOG_Port : 		Connection port for replication log
+#		o Response_mode :	Timing which returns a response
+#					 - normal   -- return result of DB which received the query
+#					 - reliable -- return result after waiting for response of 
+#		              		all Cluster DBs.
+#		o Use_Replication_Log : Use replication log
+#		                        [yes/no]. default : no
+#		o Replication_Timeout : Timeout of each replication response
+#		o Lifecheck_Timeout : 	Timeout of the lifecheck response
+#		o Lifecheck_Interval :	Interval time of the lifecheck
+#			(range 1s - 1h)
+#			10s		-- 10 seconds
+#			10min		-- 10 minutes
+#			1h		-- 1 hours
+#-------------------------------------------------------------
+<Host_Name>			pgr.pgcluster.org	</Host_Name>
+<Replication_Port>		8001			</Replication_Port>
+<Recovery_Port>		8101			</Recovery_Port>
+<RLOG_Port>			8301			</RLOG_Port>
+<Response_Mode>		normal			</Response_Mode>
+<Use_Replication_Log>		no			</Use_Replication_Log>
+<Replication_Timeout>		1min			</Replication_Timeout>
+<LifeCheck_Timeout>		3s			</LifeCheck_Timeout>
+<LifeCheck_Interval>		15s			</LifeCheck_Interval>
+#-------------------------------------------------------------
+# A setup of a log files 
+#
+#		o File_Name : 	Log file name with full path
+#		o File_Size :	maximum size of each log files
+#		  		Please specify in a number and unit(K or M)
+#				  10	-- 10 Byte
+#				  10K	-- 10 KByte
+#				  10M	-- 10 MByte
+#		o Rotate :	Rotation times
+#		           	If specified 0, old versions are removed.
+#-------------------------------------------------------------
+<Log_File_Info>
+	<File_Name>	/tmp/pgreplicate.log	</File_Name>
+	<File_Size>	1M 			</File_Size>
+	<Rotate>	3			</Rotate>
+</Log_File_Info>
+
+=============================================================
+4. Start Up / Stop
+=============================================================
+
+4-1. replication server
+
+A. Start replication server
+----------------------------------------------------------------
+$ /usr/local/pgsql/bin/pgreplicate -D /usr/local/pgsql/etc
+----------------------------------------------------------------
+
+B. Stop replication server
+----------------------------------------------------------------
+$ /usr/local/pgsql/bin/pgreplicate -D /usr/local/pgsql/etc stop
+----------------------------------------------------------------
+
+usage: pgreplicate [-D path_of_config_file] [-W path_of_work_files]
+[-w wait time before fork process][-U login user][-l][-n][-v][-h][stop]
+	-l: print error logs in the log file.
+	-n: don't run in daemon mode.
+	-v: debug mode. need '-n' flag
+	-h: print this help
+	stop: stop pgreplicate
+(config file default path: ./pgreplicate.conf)
+
+4-2. cluster DB server
+$PG_HOME = /usr/local/pgsql
+$PG_DATA = /usr/local/pgsql/data
+
+A. Start cluster DB server
+----------------------------------------------------------------
+$ /usr/local/pgsql/bin/pg_ctl start -D /usr/local/pgsql/data 
+----------------------------------------------------------------
+
+B. Stop cluster DB server
+----------------------------------------------------------------
+$ /usr/local/pgsql/bin/pg_ctl stop -D /usr/local/pgsql/data
+----------------------------------------------------------------
+
+C-1. RE start (recovery) cluster DB server with backup
+----------------------------------------------------------------
+$ /usr/local/pgsql/bin/pg_ctl start -D /usr/local/pgsql/data -o "-R"
+----------------------------------------------------------------
+
+C-2. RE start (recovery) cluster DB server without backup
+----------------------------------------------------------------
+$ /usr/local/pgsql/bin/pg_ctl start -D /usr/local/pgsql/data -o "-r"
+----------------------------------------------------------------
+
+D. Upgrade cluster DB server with pg_dump
+----------------------------------------------------------------
+$ /usr/local/pgsql/bin/pg_ctl start -D /usr/local/pgsql/data -o "-U"
+----------------------------------------------------------------
+
+4-3. load balance server
+
+A. Start load balance server
+----------------------------------------------------------------
+$ /usr/local/pgsql/bin/pglb -D /usr/local/pgsql/share
+----------------------------------------------------------------
+
+B. Stop load balance server
+----------------------------------------------------------------
+$ /usr/local/pgsql/bin/pglb -D /usr/local/pgsql/share stop
+----------------------------------------------------------------
+
+usage: pglb [-D path_of_config_file] [-W path_of_work_files] [-n][-v][-h][stop]
+	-l: print error logs in the log file.
+	-n: don't run in daemon mode.
+	-v: debug mode. need '-n' flag
+	-h: print this help
+	stop: stop pglb
+	(config file default path: ./pglb.conf)
